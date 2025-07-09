@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Расширение для студентов It-Лагеря</title>
+    <style>
+        body {
+            width: 160px;
+        }
+
+        .setting-container {
+
+        }
+
+        .setting-container label {
+
+        }
+
+        .setting-container input {
+            width: 50px;
+        }
+
+        .setting-container span {
+
+        }
+
+        /*Стили будут позже :)*/
+    </style>
+</head>
+<body>
+    <div class="setting-container">
+        <label for="skip-timer">Выберите время скипа:</label>
+        <input type="number" id="skip-timer" min="1" value="10"><span> секунд</span>
+    </div>
+    <div class="setting-container">
+        <label for="pause-timer">Выберите время паузы:</label>
+        <input type="number" id="pause-timer" min="1" value="30"><span> минут</span>
+    </div>
+    <div class="setting-container">
+        <label>
+            <input type="checkbox" id="auto-pause-enabled"> 
+            Включить таймер автопаузы
+        </label>
+    </div>
+    <button id="save-settings">Сохранить настройки</button>
+    <div class="status-container">
+        <span id="status-text"></span>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
