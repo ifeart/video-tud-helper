@@ -13,7 +13,7 @@
 ## Установка
 1. <a href="https://github.com/ifeart/video-tud-helper/archive/refs/heads/main.zip">Скачать репозиторий в виде ZIP</a>
 2. Распаковать ZIP
-3. Открыть в браузере настройку “Управление расширениями” (или <a href="chrome://extensions/">chrome://extensions/ в Google Chrome)
+3. Открыть в браузере настройку “Управление расширениями” (или <a href="chrome://extensions/">chrome://extensions/</a> в Google Chrome)
 4. Включить режим разработчика
 5. Нажать кнопку “Загрузить распакованное расширение”
 6. Выбрать расположение папки расширения и войти в эту папку, нажать “Выбор папки”
