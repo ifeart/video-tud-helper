@@ -1,6 +1,9 @@
 let videoElement = null;
 let pauseTimer = null;
-
+let pressTimer = null;
+let originalSpeed = 1.0;
+let userSelectedSpeed = 1.0; 
+let keyListenersAdded = false;
 // Логи для отладки вначале добавил, удалять не буду, так на всякий :)
 
 // console.log('Логи расширения: текущий URL:', window.location.href);
@@ -99,12 +102,65 @@ function setupPauseTimer() {
   });
 }
 
-let keyListenersAdded = false;
+function activateSpeedBoost() {
+  if (!videoElement) return;
 
+  userSelectedSpeed = videoElement.playbackRate;
+
+  chrome.storage.sync.get(['speedBoost'], (data) => {
+    originalSpeed = videoElement.playbackRate;
+    const boostSpeed = data.speedBoost || 2.0; // Значение по умолчанию 2.0
+    videoElement.playbackRate = boostSpeed;
+    videoElement.style.filter = 'brightness(1.1)';
+  });
+}
+function deactivateSpeedBoost() {
+  if (!videoElement) return;
+  videoElement.playbackRate = userSelectedSpeed;
+  videoElement.style.filter = '';
+}
+
+function handleVideoMouseDown(e) {
+  if (!videoElement) return;
+  
+  // Проверяем, что клик не на элементах управления
+  if (e.target.closest('.video-bar')) return;
+  
+  pressTimer = setTimeout(activateSpeedBoost, 500);
+}
+
+function handleVideoMouseUp(e) {
+  if (!videoElement) return;
+  clearTimeout(pressTimer);
+
+  const currentSpeed = videoElement.playbackRate;
+
+  if (videoElement.playbackRate > 1.0) {
+    deactivateSpeedBoost();
+  } else {
+    userSelectedSpeed = currentSpeed;
+    if (videoElement.paused) {
+      videoElement.play();
+    } else {
+      videoElement.pause();
+    }
+  }
+}
+
+function handleVideoMouseLeave() {
+  if (!videoElement) return;
+  clearTimeout(pressTimer);
+  
+  if (videoElement.playbackRate > 1.0) {
+    deactivateSpeedBoost();
+  }
+}
 function init() {
   videoElement = findVideo();
   
   if (videoElement) {
+    originalSpeed = videoElement.playbackRate;
+
     if (!keyListenersAdded) {
       document.addEventListener('keydown', handleKeyPress, true);
       window.addEventListener('keydown', handleKeyPress, true);
@@ -112,7 +168,16 @@ function init() {
     }
     
     videoElement.removeEventListener('play', setupPauseTimer);
+    videoElement.removeEventListener('mousedown', handleVideoMouseDown);
+    videoElement.removeEventListener('mouseup', handleVideoMouseUp);
+    videoElement.removeEventListener('mouseleave', handleVideoMouseLeave);
+    
+    // Добавляем новые обработчики
     videoElement.addEventListener('play', setupPauseTimer);
+    videoElement.addEventListener('mousedown', handleVideoMouseDown);
+    videoElement.addEventListener('mouseup', handleVideoMouseUp);
+    videoElement.addEventListener('mouseleave', handleVideoMouseLeave);
+    
     setupPauseTimer();
     
     // console.log('Логи расширения: оно (РАБОТАЕТ!!!) инициализировано');
