@@ -4,53 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Расширение для студентов It-Лагеря</title>
-    <style>
-        body {
-            width: 160px;
-        }
-
-        .setting-container {
-
-        }
-
-        .setting-container label {
-            display: block;
-        }
-
-        .setting-container input {
-            width: 50px;
-        }
-
-        .setting-container span {
-
-        }
-
-        /*Стили будут позже :)*/
-    </style>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="setting-container">
-        <label for="skip-timer">Выберите время скипа:</label>
-        <input type="number" id="skip-timer" min="1" value="10"><span> секунд</span>
+        <label for="skip-timer-input">Время скипа:</label>
+        <div class="input-number">
+            <button class="input-number__btn" id="skip-decrement">−</button>
+            <input type="number" class="input-number__input" id="skip-timer" value="10" min="1" max="60" />
+            <button class="input-number__btn" id="skip-increment">+</button>
+        </div>
+        <span class="input-label">секунд</span>
     </div>
-    <div class="setting-container">
-        <label for="pause-timer">Выберите время паузы:</label>
-        <input type="number" id="pause-timer" min="1" value="30"><span> минут</span>
-    </div>
+
     <div class="setting-container">
         <label for="speed-booster">Выберите коэффициент ускорения при удерживании:</label>
-         <input type="number" id="speed-booster" min="1" max="10" step="0.1" value="2.0"><span> x</span>
+        <input type="number" id="speed-booster" min="1" max="10" step="0.1" value="2.0"><span> x</span>
     </div>
+    
     <div class="setting-container">
-        <label>
-            <input type="checkbox" id="auto-pause-enabled"> 
-            Включить таймер автопаузы
+        <label for="pause-timer-input">Время автопаузы:</label>
+        <div class="input-number">
+            <button class="input-number__btn" id="pause-decrement">−</button>
+            <input type="number" class="input-number__input" id="pause-timer" value="30" min="1" max="180" />
+            <button class="input-number__btn" id="pause-increment">+</button>
+        </div>
+        <span class="input-label">минут</span>
+    </div>
+    
+    <div class="setting-container">
+        <label class="checkbox-label">
+            <input type="checkbox" id="auto-pause-enabled" class="checkbox-input"> 
+            <span class="checkbox-text">Включить таймер автопаузы</span>
         </label>
     </div>
-    <button id="save-settings">Сохранить настройки</button>
+    
+    <button class="btn btn-primary" id="save-settings">Сохранить</button>
+    
     <div class="status-container">
-        <span id="status-text"></span>
+        <span id="status-text" class="status-text"></span>
     </div>
+    
+    <script src="style.js"></script>
     <script src="popup.js"></script>
 </body>
 </html>
