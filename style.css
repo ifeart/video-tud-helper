@@ -131,6 +131,10 @@ body {
     background: linear-gradient(135deg, #6750A4, #7c6bb8);
     font-size: 14px;
     box-shadow: 0 4px 12px rgba(103, 80, 164, 0.3);
+    width: 100%;
+    text-align: center;
+    display: flex;
+    justify-content: center;
 }
 
 .btn-primary:hover {

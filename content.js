@@ -4,6 +4,7 @@ let pressTimer = null;
 let originalSpeed = 1.0;
 let userSelectedSpeed = 1.0; 
 let keyListenersAdded = false;
+let isSpeedBoosted = false;
 // Логи для отладки вначале добавил, удалять не буду, так на всякий :)
 
 // console.log('Логи расширения: текущий URL:', window.location.href);
@@ -36,6 +37,15 @@ function findVideo() {
   return null;
 }
 
+function trackUserSpeedChange() {
+  if (!videoElement || isSpeedBoosted) return;
+  
+  const currentSpeed = videoElement.playbackRate;
+  if (currentSpeed !== userSelectedSpeed) {
+    userSelectedSpeed = currentSpeed;
+  }
+}
+
 function handleKeyPress(e) {
   if (!videoElement) return;
   
@@ -53,7 +63,7 @@ function handleKeyPress(e) {
     handled = true;
     chrome.storage.sync.get('skipTimer', (data) => {
       const skipTime = data.skipTimer || 10;
-      videoElement.currentTime = Math.max(0, videoElement.currentTime - skipTime);
+      videoElement.currentTime = Math.max(0, videoElement.currentTime - skipTime - 0.5);
       // console.log(`Логи расширения: перемотка назад на ${skipTime} секунд`);
     });
   } else if (e.key === 'ArrowRight' || (e.key === 'd')) {
@@ -69,6 +79,9 @@ function handleKeyPress(e) {
   } else if (e.key === ' ' || e.key === 'p') {
     handled = true;
     if (videoElement.paused) {
+      if (!isSpeedBoosted) {
+        videoElement.playbackRate = userSelectedSpeed;
+      }
       videoElement.play();
       // console.log('Логи расширения: воспроизведение');
     } else {
@@ -103,19 +116,22 @@ function setupPauseTimer() {
 }
 
 function activateSpeedBoost() {
-  if (!videoElement) return;
+  if (!videoElement || isSpeedBoosted) return;
 
   userSelectedSpeed = videoElement.playbackRate;
+  isSpeedBoosted = true;
 
   chrome.storage.sync.get(['speedBoost'], (data) => {
-    originalSpeed = videoElement.playbackRate;
-    const boostSpeed = data.speedBoost || 2.0; // Значение по умолчанию 2.0
+    const boostSpeed = data.speedBoost || 2.0;
     videoElement.playbackRate = boostSpeed;
     videoElement.style.filter = 'brightness(1.1)';
   });
 }
+
 function deactivateSpeedBoost() {
-  if (!videoElement) return;
+  if (!videoElement || !isSpeedBoosted) return;
+  
+  isSpeedBoosted = false;
   videoElement.playbackRate = userSelectedSpeed;
   videoElement.style.filter = '';
 }
@@ -123,7 +139,6 @@ function deactivateSpeedBoost() {
 function handleVideoMouseDown(e) {
   if (!videoElement) return;
   
-  // Проверяем, что клик не на элементах управления
   if (e.target.closest('.video-bar')) return;
   
   pressTimer = setTimeout(activateSpeedBoost, 500);
@@ -133,13 +148,11 @@ function handleVideoMouseUp(e) {
   if (!videoElement) return;
   clearTimeout(pressTimer);
 
-  const currentSpeed = videoElement.playbackRate;
-
-  if (videoElement.playbackRate > 1.0) {
+  if (isSpeedBoosted) {
     deactivateSpeedBoost();
   } else {
-    userSelectedSpeed = currentSpeed;
     if (videoElement.paused) {
+      videoElement.playbackRate = userSelectedSpeed;
       videoElement.play();
     } else {
       videoElement.pause();
@@ -151,15 +164,31 @@ function handleVideoMouseLeave() {
   if (!videoElement) return;
   clearTimeout(pressTimer);
   
-  if (videoElement.playbackRate > 1.0) {
+  if (isSpeedBoosted) {
     deactivateSpeedBoost();
   }
 }
+
+function handlePlaybackRateChange() {
+  if (!videoElement) return;
+  
+  if (!isSpeedBoosted) {
+    trackUserSpeedChange();
+  }
+}
+
 function init() {
   videoElement = findVideo();
   
   if (videoElement) {
-    originalSpeed = videoElement.playbackRate;
+    chrome.storage.sync.get(['videoSpeed'], (data) => {
+      const savedSpeed = data.videoSpeed || 1.0;
+      userSelectedSpeed = savedSpeed;
+      videoElement.playbackRate = savedSpeed;;
+    });
+    
+    originalSpeed = videoElement.playbackRate || 1.0;
+    isSpeedBoosted = false;
 
     if (!keyListenersAdded) {
       document.addEventListener('keydown', handleKeyPress, true);
@@ -171,12 +200,14 @@ function init() {
     videoElement.removeEventListener('mousedown', handleVideoMouseDown);
     videoElement.removeEventListener('mouseup', handleVideoMouseUp);
     videoElement.removeEventListener('mouseleave', handleVideoMouseLeave);
+    videoElement.removeEventListener('ratechange', handlePlaybackRateChange);
     
-    // Добавляем новые обработчики
+
     videoElement.addEventListener('play', setupPauseTimer);
     videoElement.addEventListener('mousedown', handleVideoMouseDown);
     videoElement.addEventListener('mouseup', handleVideoMouseUp);
     videoElement.addEventListener('mouseleave', handleVideoMouseLeave);
+    videoElement.addEventListener('ratechange', handlePlaybackRateChange);
     
     setupPauseTimer();
     
@@ -186,6 +217,17 @@ function init() {
     setTimeout(init, 1000);
   }
 }
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'setVideoSpeed') {
+    if (videoElement && !isSpeedBoosted) {
+      userSelectedSpeed = request.speed;
+      videoElement.playbackRate = request.speed;
+      chrome.storage.sync.set({ videoSpeed: request.speed });
+    }
+    sendResponse({ success: true });
+  }
+});
 
 function setupMutationObserver() {
   const observer = new MutationObserver((changesEl) => {

@@ -19,8 +19,21 @@
     </div>
 
     <div class="setting-container">
-        <label for="speed-booster">Выберите коэффициент ускорения при удерживании:</label>
-        <input type="number" id="speed-booster" min="1" max="10" step="0.1" value="2.0"><span> x</span>
+        <label for="speed-booster">Коэффициент ускорения при зажатии:</label>
+        <div class="input-number">
+            <button class="input-number__btn" id="speed-decrement">−</button>
+            <input type="number" class="input-number__input" id="speed-booster" value="2.0" min="1.0" max="10.0" step="0.1" />
+            <button class="input-number__btn" id="speed-increment">+</button>
+        </div>
+    </div>
+    
+    <div class="setting-container">
+        <label for="video-speed">Скорость воспроизведения видео:</label>
+        <div class="input-number">
+            <button class="input-number__btn" id="video-speed-decrement">−</button>
+            <input type="number" class="input-number__input" id="video-speed" value="1.0" min="0.5" max="3.0" step="0.1" />
+            <button class="input-number__btn" id="video-speed-increment">+</button>
+        </div>
     </div>
     
     <div class="setting-container">
